@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import UserTable from '../components/UserTable';
+
 export default function DashboardPage({ session }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
   async function fetchUsers() {
     const { data, error } = await supabase
       .from('profiles')
@@ -15,12 +17,14 @@ export default function DashboardPage({ session }) {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
   }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
   }
+
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
       <header

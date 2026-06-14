@@ -1,4 +1,4 @@
-// src/App.jsx
+//src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
@@ -20,7 +20,6 @@ function App() {
     );
     return () => listener.subscription.unsubscribe();
   }, []);
-
   if (loading) return <div>Chargement...</div>;
 
   return (
