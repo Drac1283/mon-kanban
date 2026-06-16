@@ -1,9 +1,10 @@
-// src/App.jsx
+//src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -20,7 +21,6 @@ function App() {
     );
     return () => listener.subscription.unsubscribe();
   }, []);
-
   if (loading) return <div>Chargement...</div>;
 
   return (
@@ -35,6 +35,16 @@ function App() {
           element={
             session ? (
               <DashboardPage session={session} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            session ? (
+              <ProfilePage session={session} />
             ) : (
               <Navigate to="/login" />
             )
