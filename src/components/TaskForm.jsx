@@ -1,6 +1,7 @@
 // src/components/TaskForm.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+
 export default function TaskForm({ boardId, onCreated }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,6 +49,28 @@ export default function TaskForm({ boardId, onCreated }) {
       setError(error.message);
       return;
     }
+
+    if (!error && dueDate) {
+      const formattedDate = new Date(dueDate).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: [user.email], // envoyer au créateur de la tâche
+          subject: `📋 Tâche créée : ${title}`,
+          html: `
+            <h2>Tâche créée avec succès</h2>
+            <p><strong>Titre :</strong> ${title}</p>
+            <p><strong>Priorité :</strong> ${priority}</p>
+            <p><strong>Échéance :</strong> ${formattedDate}</p>
+          `,
+        }),
+      });
+    }
     // Réinitialiser le formulaire
     setTitle('');
     setDescription('');
@@ -57,6 +80,7 @@ export default function TaskForm({ boardId, onCreated }) {
     setDueDate('');
     onCreated();
   }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -129,7 +153,7 @@ export default function TaskForm({ boardId, onCreated }) {
             onChange={(e) => setCategoryId(e.target.value)}
             style={inputStyle}
           >
-            <option value="">— Aucune —</option>
+            <option value="">— Aucune —</option>{' '}
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -160,6 +184,7 @@ export default function TaskForm({ boardId, onCreated }) {
           fontSize: '0.95rem',
         }}
       >
+        {' '}
         {loading ? 'Enregistrement...' : 'Créer la tâche'}
       </button>
     </form>
