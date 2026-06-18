@@ -57,4 +57,4 @@ démarrer le serveur
 
 ## Image
 
-![LoginPage](images/loginPage.png)
+![LoginPage](image/loginPage.png)
