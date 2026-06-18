@@ -1,4 +1,4 @@
-# Project R209 mon-Kanban
+# KanbanRT R209 - Application de gestion de tâches pour équipes Réseaux & Télécoms
 
 [Lien vers l'application déployé](https://r209-kanban.vercel.app)
 
