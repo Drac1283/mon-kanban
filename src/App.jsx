@@ -1,4 +1,3 @@
-//src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
@@ -10,17 +9,39 @@ function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Écoute les changements de session (connexion/déconnexion)
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
     });
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => setSession(session),
+      async (event, currentSession) => {
+        setSession(currentSession);
+        if (event === 'SIGNED_IN' && currentSession) {
+          const userId = currentSession.user.id;
+          const hasBeenWelcomed = localStorage.getItem(`welcomed_${userId}`);
+          if (!hasBeenWelcomed) {
+            try {
+              await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  to: [currentSession.user.email],
+                  subject: 'Bienvenue sur KanbanRT ! 🎉',
+                  html: `<div style="text-align: center;"><h2 style="color: #1A8C82;">Bienvenue à bord !</h2><p>Commencez dès maintenant à gérer vos tâches sur KanbanRT.</p></div>`,
+                }),
+              });
+              localStorage.setItem(`welcomed_${userId}`, 'true');
+            } catch (err) {
+              console.error('Erreur envoi email bienvenue', err);
+            }
+          }
+        }
+      },
     );
     return () => listener.subscription.unsubscribe();
   }, []);
+
   if (loading) return <div>Chargement...</div>;
 
   return (

@@ -1,4 +1,3 @@
-// src/components/TaskForm.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -12,23 +11,20 @@ export default function TaskForm({ boardId, onCreated }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // Charger les catégories au montage
+
   useEffect(() => {
     supabase
       .from('categories')
       .select('*')
-      .then(({ data }) => {
-        setCategories(data || []);
-      });
+      .then(({ data }) => setCategories(data || []));
   }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!title.trim()) {
-      setError('Le titre est obligatoire.');
-      return;
-    }
+    if (!title.trim()) return setError('Le titre est obligatoire.');
     setLoading(true);
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -44,13 +40,11 @@ export default function TaskForm({ boardId, onCreated }) {
         created_by: user.id,
       },
     ]);
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
 
-    if (!error && dueDate) {
+    setLoading(false);
+    if (error) return setError(error.message);
+
+    if (dueDate) {
       const formattedDate = new Date(dueDate).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: 'long',
@@ -60,18 +54,26 @@ export default function TaskForm({ boardId, onCreated }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: [user.email], // envoyer au créateur de la tâche
+          to: [user.email],
           subject: `📋 Tâche créée : ${title}`,
           html: `
-            <h2>Tâche créée avec succès</h2>
-            <p><strong>Titre :</strong> ${title}</p>
-            <p><strong>Priorité :</strong> ${priority}</p>
-            <p><strong>Échéance :</strong> ${formattedDate}</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #1A8C82; margin: 0;">Nouvelle tâche planifiée ! 🚀</h2>
+            </div>
+            <p>Une nouvelle tâche a été ajoutée avec succès à votre tableau de bord :</p>
+            <ul style="list-style-type: none; padding: 0; margin: 20px 0;">
+              <li style="margin-bottom: 10px; font-size: 15px;">📌 <strong>Titre :</strong> ${title}</li>
+              <li style="margin-bottom: 10px; font-size: 15px;">🏷 <strong>Priorité :</strong> ${priority.toUpperCase()}</li>
+              <li style="margin-bottom: 10px; font-size: 15px;">📅 <strong>Échéance :</strong> ${formattedDate}</li>
+            </ul>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="https://mon-kanban.vercel.app/dashboard" style="background-color: #1A8C82; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Accéder au tableau</a>
+            </div>
           `,
         }),
       });
     }
-    // Réinitialiser le formulaire
+
     setTitle('');
     setDescription('');
     setStatus('todo');
@@ -116,7 +118,7 @@ export default function TaskForm({ boardId, onCreated }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: '0.5rem',
           marginBottom: '0.75rem',
         }}
@@ -184,12 +186,12 @@ export default function TaskForm({ boardId, onCreated }) {
           fontSize: '0.95rem',
         }}
       >
-        {' '}
         {loading ? 'Enregistrement...' : 'Créer la tâche'}
       </button>
     </form>
   );
 }
+
 const inputStyle = {
   padding: '0.5rem 0.75rem',
   border: '1px solid #CBD5E1',

@@ -1,4 +1,3 @@
-// src/pages/DashboardPage.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import UserTable from '../components/UserTable';
@@ -16,16 +15,12 @@ export default function DashboardPage({ session }) {
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) {
-      console.error('Erreur lors de la récupération des utilisateurs:', error);
-    } else {
-      setUsers(data || []);
-    }
+    if (error) console.error('Erreur :', error);
+    else setUsers(data || []);
     setLoading(false);
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/ehaustive-deps
     fetchUsers();
     supabase
       .from('boards')
@@ -39,9 +34,7 @@ export default function DashboardPage({ session }) {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
       <Navbar session={session} />
-
       <main style={{ padding: '2rem' }}>
-        {/* Navigation par onglets */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {[
             ['tasks', '🗂 Tâches'],
@@ -64,7 +57,6 @@ export default function DashboardPage({ session }) {
             </button>
           ))}
         </div>
-
         {tab === 'tasks' && boardId && <TaskList boardId={boardId} />}
         {tab === 'tasks' && !boardId && (
           <p style={{ color: '#94A3B8' }}>
@@ -73,7 +65,7 @@ export default function DashboardPage({ session }) {
         )}
         {tab === 'users' &&
           (loading ? (
-            <p>Chargement...</p>
+            <p>Chargement des utilisateurs...</p>
           ) : (
             <UserTable users={users} onRefresh={fetchUsers} />
           ))}
