@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Accepter uniquement les requêtes POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -10,7 +9,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Champs manquants' });
   }
 
-  // 🎨 LE TEMPLATE HTML RICHE EST ICI
   const richHtmlTemplate = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
       
@@ -40,9 +38,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: 'KanbanRT <onboarding@resend.dev>',
-        to: ['gabrielcb.1283@gmail.com'], // Toujours votre adresse pour le mode gratuit
+        to: ['gabrielcb.1283@gmail.com'],
         subject,
-        html: richHtmlTemplate, // 👈 On injecte le beau design ici
+        html: richHtmlTemplate,
       }),
     });
 
