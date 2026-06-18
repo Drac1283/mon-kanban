@@ -46,14 +46,11 @@ export default function TaskList({ boardId }) {
     fetchTasks(); // Met à jour localement
   }
 
-  // LA FONCTION MAGIQUE DU DRAG & DROP
   async function onDragEnd(result) {
     const { destination, source, draggableId } = result;
 
-    // Si on lâche en dehors d'une colonne, on annule
     if (!destination) return;
 
-    // Si on lâche exactement au même endroit, on annule
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -62,14 +59,12 @@ export default function TaskList({ boardId }) {
 
     const newStatus = destination.droppableId;
 
-    // 1. Mise à jour immédiate (Optimistic UI) pour que ce soit fluide à l'écran
     setTasks((prevTasks) =>
       prevTasks.map((t) =>
         t.id === draggableId ? { ...t, status: newStatus } : t,
       ),
     );
 
-    // 2. Mise à jour en arrière-plan dans Supabase
     const { error } = await supabase
       .from('tasks')
       .update({ status: newStatus })
@@ -77,7 +72,7 @@ export default function TaskList({ boardId }) {
 
     if (error) {
       console.error('Erreur de mise à jour :', error);
-      fetchTasks(); // En cas d'erreur, on recharge depuis la base de données
+      fetchTasks();
     }
   }
 
@@ -143,7 +138,7 @@ export default function TaskList({ boardId }) {
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       style={{
-                        minHeight: '150px', // Indispensable pour pouvoir déposer dans une colonne vide
+                        minHeight: '150px',
                         background: snapshot.isDraggingOver
                           ? 'rgba(0,0,0,0.03)'
                           : 'transparent',
