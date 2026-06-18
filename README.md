@@ -3,7 +3,7 @@
 
 A brief description of what this project does and who it's for
 
-[Lien vers l'application déployé](https://r209-kanban.vercel.app/)
+
 
 ## Auteurs
 
