@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import Navbar from '../components/Navbar';
@@ -6,67 +5,37 @@ import Navbar from '../components/Navbar';
 export default function ProfilePage({ session }) {
   const user = session.user;
 
-  // États infos générales
   const [fullName, setFullName] = useState(user.user_metadata?.full_name || '');
+  const [bio, setBio] = useState(user.user_metadata?.bio || '');
   const [infoMsg, setInfoMsg] = useState('');
   const [infoErr, setInfoErr] = useState('');
 
-  // États mot de passe
   const [newPass, setNewPass] = useState('');
   const [passMsg, setPassMsg] = useState('');
   const [passErr, setPassErr] = useState('');
 
-  // États avatar
   const [avatarUrl, setAvatarUrl] = useState(
     user.user_metadata?.avatar_url || '',
   );
   const [uploading, setUploading] = useState(false);
 
-  // ── Sauvegarder le nom ────────────────────────────────
   async function handleSaveInfo(e) {
     e.preventDefault();
     setInfoErr('');
     setInfoMsg('');
     const { error } = await supabase.auth.updateUser({
-      data: { full_name: fullName },
+      data: { full_name: fullName, bio: bio },
     });
     if (error) setInfoErr(error.message);
     else setInfoMsg('✅ Profil mis à jour !');
   }
 
-  // Exemple d'utilisation dans un composant React
-  async function sendEmail() {
-    const response = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: ['destinataire@exemple.com'],
-        subject: '📋 Nouvelle tâche KanbanRT',
-        html: `
-          <h1>Nouvelle tâche assignée !</h1>
-          <p>La tâche <strong>Configurer Supabase</strong> vous a été assignée.</p>
-          <p>Statut : <em>À faire</em> · Priorité : <em>Haute</em></p>
-          <a href='https://mon-kanban.vercel.app/dashboard'>Voir le tableau →</a>
-`,
-      }),
-    });
-    const result = await response.json();
-    if (result.success) {
-      console.log('E-mail envoyé ! ID :', result.id);
-    } else {
-      console.error('Erreur :', result.error);
-    }
-  }
-
-  // ── Changer le mot de passe ───────────────────────────
   async function handleChangePassword(e) {
     e.preventDefault();
     setPassErr('');
     setPassMsg('');
-    if (newPass.length < 6) {
-      setPassErr('Le mot de passe doit faire au moins 6 caractères.');
-      return;
-    }
+    if (newPass.length < 6)
+      return setPassErr('Le mot de passe doit faire au moins 6 caractères.');
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) setPassErr(error.message);
     else {
@@ -75,43 +44,55 @@ export default function ProfilePage({ session }) {
     }
   }
 
-  // ── Upload avatar ─────────────────────────────────────
   async function handleAvatarUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-
     const filePath = `${user.id}/avatar.${file.name.split('.').pop()}`;
-
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, file, { upsert: true });
-
     if (uploadError) {
       alert('Erreur upload : ' + uploadError.message);
       setUploading(false);
       return;
     }
-
     const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    const publicUrl = data.publicUrl;
-
-    await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-    setAvatarUrl(publicUrl);
+    await supabase.auth.updateUser({ data: { avatar_url: data.publicUrl } });
+    setAvatarUrl(data.publicUrl);
     setUploading(false);
   }
 
-  // ── JSX ───────────────────────────────────────────────
+  async function handleDeleteAccount() {
+    if (
+      !window.confirm(
+        'Voulez-vous VRAIMENT supprimer votre compte ? Cette action est irréversible.',
+      )
+    )
+      return;
+    const response = await fetch('/api/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    const result = await response.json();
+    if (result.success) {
+      alert('Votre compte a été définitivement supprimé.');
+      await supabase.auth.signOut();
+      window.location.href = '/login';
+    } else {
+      alert('Erreur lors de la suppression : ' + result.error);
+    }
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
       <Navbar session={session} />
-
       <main
         style={{ maxWidth: '600px', margin: '2rem auto', padding: '0 1rem' }}
       >
         <h1 style={{ marginBottom: '2rem' }}>Mon profil</h1>
 
-        {/* ── Section avatar ── */}
         <section style={{ marginBottom: '2rem', textAlign: 'center' }}>
           <div
             style={{
@@ -151,7 +132,6 @@ export default function ProfilePage({ session }) {
           </label>
         </section>
 
-        {/* ── Section infos générales ── */}
         <section
           style={{
             background: '#fff',
@@ -192,6 +172,32 @@ export default function ProfilePage({ session }) {
                 boxSizing: 'border-box',
               }}
             />
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontSize: '0.9rem',
+                color: '#475569',
+              }}
+            >
+              Bio / Poste actuel
+            </label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows="3"
+              placeholder="Développeur, Chef de projet..."
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                border: '1px solid #CBD5E1',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+                resize: 'vertical',
+              }}
+            />
             {infoErr && (
               <p style={{ color: '#DC2626', marginBottom: '0.5rem' }}>
                 {infoErr}
@@ -219,7 +225,6 @@ export default function ProfilePage({ session }) {
           </form>
         </section>
 
-        {/* ── Section mot de passe ── */}
         <section
           style={{
             background: '#fff',
@@ -282,6 +287,29 @@ export default function ProfilePage({ session }) {
               Mettre à jour
             </button>
           </form>
+        </section>
+
+        <section
+          style={{
+            textAlign: 'center',
+            marginTop: '2rem',
+            marginBottom: '2rem',
+          }}
+        >
+          <button
+            onClick={handleDeleteAccount}
+            style={{
+              background: 'transparent',
+              color: '#DC2626',
+              border: '1px solid #DC2626',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '500',
+            }}
+          >
+            ⚠️ Supprimer mon compte définitivement
+          </button>
         </section>
       </main>
     </div>
