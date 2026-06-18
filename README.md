@@ -1,7 +1,5 @@
 # Project R209 mon-Kanban
 
-A brief description of what this project does and who it's for
-
 [Lien vers l'application déployé](https://r209-kanban.vercel.app)
 
 ## Auteurs
@@ -11,12 +9,15 @@ A brief description of what this project does and who it's for
 
 ## Stack Technique
 
+## 💻 Tech Stack
+
 ### Environnement & Frontend
 
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 ![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
 ### Backend & Database
 

@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import TaskCard from './TaskCard';
 import TaskForm from './TaskForm';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+
+const COLUMNS = [
+  { id: 'todo', title: '📋 À faire', color: '#E2E8F0' },
+  { id: 'in_progress', title: '⚙️ En cours', color: '#DBEAFE' },
+  { id: 'review', title: '👀 Validation', color: '#FEF3C7' },
+  { id: 'done', title: '✅ Terminées', color: '#DCFCE7' },
+];
 
 export default function TaskList({ boardId }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('created_at');
 
   async function fetchTasks() {
     setLoading(true);
@@ -24,6 +29,7 @@ export default function TaskList({ boardId }) {
   useEffect(() => {
     fetchTasks();
 
+    // Bonus Realtime maintenu !
     const channel = supabase
       .channel('realtime_tasks')
       .on('postgres', { event: '*', schema: 'public', table: 'tasks' }, () => {
@@ -37,111 +43,132 @@ export default function TaskList({ boardId }) {
   async function handleDelete(taskId) {
     if (!window.confirm('Supprimer cette tâche ?')) return;
     await supabase.from('tasks').delete().eq('id', taskId);
-    fetchTasks();
+    fetchTasks(); // Met à jour localement
+  }
+
+  // LA FONCTION MAGIQUE DU DRAG & DROP
+  async function onDragEnd(result) {
+    const { destination, source, draggableId } = result;
+
+    // Si on lâche en dehors d'une colonne, on annule
+    if (!destination) return;
+
+    // Si on lâche exactement au même endroit, on annule
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    )
+      return;
+
+    const newStatus = destination.droppableId;
+
+    // 1. Mise à jour immédiate (Optimistic UI) pour que ce soit fluide à l'écran
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.id === draggableId ? { ...t, status: newStatus } : t,
+      ),
+    );
+
+    // 2. Mise à jour en arrière-plan dans Supabase
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus })
+      .eq('id', draggableId);
+
+    if (error) {
+      console.error('Erreur de mise à jour :', error);
+      fetchTasks(); // En cas d'erreur, on recharge depuis la base de données
+    }
   }
 
   if (loading) return <p>Chargement des tâches...</p>;
-
-  const todoCount = tasks.filter((t) => t.status === 'todo').length;
-  const inProgressCount = tasks.filter(
-    (t) => t.status === 'in_progress',
-  ).length;
-  const doneCount = tasks.filter((t) => t.status === 'done').length;
-
-  let displayedTasks = tasks;
-  if (statusFilter !== 'all') {
-    displayedTasks = displayedTasks.filter((t) => t.status === statusFilter);
-  }
-  displayedTasks.sort((a, b) => {
-    if (sortBy === 'priority') return a.priority.localeCompare(b.priority);
-    if (sortBy === 'due_date')
-      return new Date(a.due_date || '2099') - new Date(b.due_date || '2099');
-    return 0;
-  });
 
   return (
     <div>
       <TaskForm boardId={boardId} onCreated={fetchTasks} />
 
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: 'white',
-          padding: '1rem',
-          borderRadius: '10px',
-          marginBottom: '1rem',
-          border: '1px solid #E2E8F0',
-        }}
-      >
+      {/* Le contexte global du Glisser-Déposer */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        {/* Grille des 4 colonnes */}
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '1rem',
-            fontSize: '0.9rem',
-            color: '#64748B',
+            alignItems: 'start',
           }}
         >
-          <span>
-            📋 À faire: <strong>{todoCount}</strong>
-          </span>
-          <span>
-            ⚙️ En cours: <strong>{inProgressCount}</strong>
-          </span>
-          <span>
-            ✅ Terminées: <strong>{doneCount}</strong>
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{
-              padding: '0.4rem',
-              borderRadius: '6px',
-              border: '1px solid #CBD5E1',
-            }}
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="todo">À faire</option>
-            <option value="in_progress">En cours</option>
-            <option value="review">Validation</option>
-            <option value="done">Terminées</option>
-          </select>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            style={{
-              padding: '0.4rem',
-              borderRadius: '6px',
-              border: '1px solid #CBD5E1',
-            }}
-          >
-            <option value="created_at">Date de création</option>
-            <option value="due_date">Échéance</option>
-            <option value="priority">Priorité</option>
-          </select>
-        </div>
-      </div>
+          {COLUMNS.map((col) => {
+            // On filtre les tâches pour ne garder que celles de cette colonne
+            const columnTasks = tasks.filter((t) => t.status === col.id);
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '0.75rem',
-        }}
-      >
-        {displayedTasks.map((task) => (
-          <TaskCard key={task.id} task={task} onDelete={handleDelete} />
-        ))}
-      </div>
-      {displayedTasks.length === 0 && (
-        <p style={{ textAlign: 'center', color: '#94A3B8', padding: '2rem' }}>
-          Aucune tâche correspondante 🚀
-        </p>
-      )}
+            return (
+              <div
+                key={col.id}
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  border: `1px solid ${col.color}`,
+                  borderTop: `4px solid ${col.color}`,
+                }}
+              >
+                <h3
+                  style={{
+                    marginTop: 0,
+                    marginBottom: '1rem',
+                    color: '#1E293B',
+                    fontSize: '1rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {col.title}
+                  <span
+                    style={{
+                      background: col.color,
+                      padding: '0.1rem 0.5rem',
+                      borderRadius: '999px',
+                      fontSize: '0.8rem',
+                    }}
+                  >
+                    {columnTasks.length}
+                  </span>
+                </h3>
+
+                {/* La zone où on peut lâcher la carte */}
+                <Droppable droppableId={col.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      style={{
+                        minHeight: '150px', // Indispensable pour pouvoir déposer dans une colonne vide
+                        background: snapshot.isDraggingOver
+                          ? 'rgba(0,0,0,0.03)'
+                          : 'transparent',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s ease',
+                      }}
+                    >
+                      {columnTasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          index={index}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                      {provided.placeholder}{' '}
+                      {/* Espace réservé pendant le drag */}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            );
+          })}
+        </div>
+      </DragDropContext>
     </div>
   );
 }

@@ -14,9 +14,9 @@ export default function LoginPage() {
     setError('');
     setMsg('');
     setLoading(true);
-    let result;
-    if (isRegister) result = await supabase.auth.signUp({ email, password });
-    else result = await supabase.auth.signInWithPassword({ email, password });
+    let result = isRegister
+      ? await supabase.auth.signUp({ email, password })
+      : await supabase.auth.signInWithPassword({ email, password });
     if (result.error) setError(result.error.message);
     setLoading(false);
   }
@@ -31,29 +31,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#0F172A',
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <form
         onSubmit={handleSubmit}
-        style={{
-          background: 'white',
-          padding: '2rem',
-          borderRadius: '12px',
-          width: '380px',
-        }}
+        className="bg-white p-8 rounded-2xl w-full max-w-sm shadow-xl"
       >
-        <h1 style={{ color: '#1A8C82', marginBottom: '1.5rem' }}>
+        <h1 className="text-brand text-2xl font-bold mb-6 text-center">
           {isRegister ? '📝 Créer un compte' : '🔐 Connexion'}
         </h1>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {msg && <p style={{ color: '#16A34A', marginBottom: '1rem' }}>{msg}</p>}
+
+        {error && (
+          <p className="text-red-500 bg-red-50 p-3 rounded-md mb-4 text-sm">
+            {error}
+          </p>
+        )}
+        {msg && (
+          <p className="text-green-600 bg-green-50 p-3 rounded-md mb-4 text-sm">
+            {msg}
+          </p>
+        )}
 
         <input
           type="email"
@@ -61,17 +57,22 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={inputStyle}
+          className="w-full p-3 mb-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
         />
         <input
           type="password"
-          placeholder="Mot de passe (min. 6 caractères)"
+          placeholder="Mot de passe (min. 6 car.)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={inputStyle}
+          className="w-full p-3 mb-6 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
         />
-        <button type="submit" disabled={loading} style={btnStyle}>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full p-3 bg-brand text-white font-medium rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
+        >
           {loading
             ? 'En cours...'
             : isRegister
@@ -79,31 +80,18 @@ export default function LoginPage() {
               : 'Se connecter'}
         </button>
 
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginTop: '1rem',
-            gap: '0.5rem',
-          }}
-        >
+        <div className="flex flex-col items-center mt-6 gap-2 text-sm">
           <span
-            style={{ cursor: 'pointer', color: '#1A8C82' }}
+            className="cursor-pointer text-brand hover:underline font-medium"
             onClick={() => setIsRegister(!isRegister)}
           >
             {isRegister
               ? 'Déjà un compte ? Connexion'
-              : 'Pas de compte ? S inscrire'}
+              : "Pas de compte ? S'inscrire"}
           </span>
           {!isRegister && (
             <span
-              style={{
-                cursor: 'pointer',
-                color: '#64748B',
-                fontSize: '0.85rem',
-                textDecoration: 'underline',
-              }}
+              className="cursor-pointer text-slate-500 hover:text-slate-700 underline"
               onClick={handleResetPassword}
             >
               Mot de passe oublié ?
@@ -114,23 +102,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.75rem',
-  marginBottom: '1rem',
-  border: '1px solid #CBD5E1',
-  borderRadius: '8px',
-  fontSize: '1rem',
-  boxSizing: 'border-box',
-};
-const btnStyle = {
-  width: '100%',
-  padding: '0.75rem',
-  background: '#1A8C82',
-  color: 'white',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '1rem',
-  cursor: 'pointer',
-};

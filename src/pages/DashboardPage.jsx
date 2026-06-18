@@ -11,12 +11,11 @@ export default function DashboardPage({ session }) {
   const [boardId, setBoardId] = useState(null);
 
   async function fetchUsers() {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) console.error('Erreur :', error);
-    else setUsers(data || []);
+    setUsers(data || []);
     setLoading(false);
   }
 
@@ -32,10 +31,12 @@ export default function DashboardPage({ session }) {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
+    <div className="min-h-screen bg-slate-50">
       <Navbar session={session} />
-      <main style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+
+      <main className="p-4 md:p-8 max-w-7xl mx-auto">
+        {/* Navigation par onglets */}
+        <div className="flex gap-2 mb-8 bg-white p-2 rounded-lg shadow-sm border border-slate-200 inline-flex">
           {[
             ['tasks', '🗂 Tâches'],
             ['users', '👥 Utilisateurs'],
@@ -43,29 +44,26 @@ export default function DashboardPage({ session }) {
             <button
               key={key}
               onClick={() => setTab(key)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                background: tab === key ? '#1A8C82' : '#E2E8F0',
-                color: tab === key ? 'white' : '#1E293B',
-                fontWeight: tab === key ? 700 : 400,
-              }}
+              className={`px-5 py-2 rounded-md font-medium text-sm transition-all ${
+                tab === key
+                  ? 'bg-brand text-white shadow-md'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               {label}
             </button>
           ))}
         </div>
+
         {tab === 'tasks' && boardId && <TaskList boardId={boardId} />}
         {tab === 'tasks' && !boardId && (
-          <p style={{ color: '#94A3B8' }}>
-            Aucun tableau trouvé. Créez-en un via SQLEditor.
-          </p>
+          <div className="text-center p-12 bg-white rounded-xl border border-slate-200 text-slate-500">
+            Aucun tableau trouvé.
+          </div>
         )}
         {tab === 'users' &&
           (loading ? (
-            <p>Chargement des utilisateurs...</p>
+            <p className="text-slate-500 animate-pulse">Chargement...</p>
           ) : (
             <UserTable users={users} onRefresh={fetchUsers} />
           ))}

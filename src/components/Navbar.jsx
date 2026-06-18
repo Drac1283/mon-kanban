@@ -5,86 +5,43 @@ export default function Navbar({ session }) {
   const location = useLocation();
   const avatarUrl = session?.user?.user_metadata?.avatar_url;
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-  }
-
-  function linkStyle(path) {
-    const isActive = location.pathname === path;
-    return {
-      padding: '0.5rem 1rem',
-      borderRadius: '6px',
-      textDecoration: 'none',
-      fontWeight: isActive ? 700 : 400,
-      background: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
-      color: 'white',
-    };
-  }
+  const linkClass = (path) => `
+    px-3 py-2 rounded-md text-sm font-medium transition-colors
+    ${location.pathname === path ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}
+  `;
 
   return (
-    <nav
-      style={{
-        background: '#1A8C82',
-        padding: '0 2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '56px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-      }}
-    >
-      <span style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem' }}>
-        KanbanRT
-      </span>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Link to="/dashboard" style={linkStyle('/dashboard')}>
-          Tableau de bord
-        </Link>
-        <Link to="/profile" style={linkStyle('/profile')}>
-          Mon profil
-        </Link>
+    <nav className="bg-brand px-4 sm:px-6 flex items-center justify-between h-16 shadow-md">
+      <div className="flex items-center gap-6">
+        <span className="text-white font-bold text-xl tracking-tight hidden sm:block">
+          KanbanRT
+        </span>
+        <div className="flex items-center gap-2">
+          <Link to="/dashboard" className={linkClass('/dashboard')}>
+            Tableau de bord
+          </Link>
+          <Link to="/profile" className={linkClass('/profile')}>
+            Mon profil
+          </Link>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: '0.85rem',
-          }}
-        >
+      <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-2 text-white/90 text-sm">
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt="Avatar"
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '1px solid rgba(255,255,255,0.4)',
-              }}
+              className="w-8 h-8 rounded-full object-cover border border-white/40"
             />
           ) : (
-            <span style={{ fontSize: '1.2rem' }}>👤</span>
+            <span className="text-xl">👤</span>
           )}
-          {session?.user?.email}
+          <span>{session?.user?.email}</span>
         </div>
-
         <button
-          onClick={handleLogout}
-          style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.4)',
-            color: 'white',
-            borderRadius: '6px',
-            padding: '0.4rem 0.9rem',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-          }}
+          onClick={() => supabase.auth.signOut()}
+          className="bg-white/10 border border-white/20 text-white text-sm font-medium rounded-md px-4 py-2 hover:bg-white/20 transition-colors"
         >
           Déconnexion
         </button>
