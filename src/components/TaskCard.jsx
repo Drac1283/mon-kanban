@@ -1,11 +1,12 @@
-// Couleurs selon la priorité
+import { useState } from 'react';
+import { supabase } from '../lib/supabase';
+
 const PRIORITY_COLORS = {
   high: { bg: '#FEF2F2', border: '#DC2626', label: '🔴 Haute' },
   medium: { bg: '#FFFBEB', border: '#F59E0B', label: '🟡 Moyenne' },
   low: { bg: '#F0FDF4', border: '#16A34A', label: '🟢 Basse' },
 };
 
-// Libellés selon le statut
 const STATUS_LABELS = {
   todo: { label: '📋 À faire', color: '#64748B' },
   in_progress: { label: '⚙ En cours', color: '#3B82F6' },
@@ -17,7 +18,9 @@ export default function TaskCard({ task, onDelete }) {
   const priority = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.low;
   const status = STATUS_LABELS[task.status] || STATUS_LABELS.todo;
 
-  // Formater la date d'échéance
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(task.title);
+
   const dueLabel = task.due_date
     ? new Date(task.due_date).toLocaleDateString('fr-FR', {
         day: '2-digit',
@@ -25,11 +28,17 @@ export default function TaskCard({ task, onDelete }) {
         year: 'numeric',
       })
     : null;
-  // Vérifier si la tâche est en retard
   const isOverdue =
     task.due_date &&
     new Date(task.due_date) < new Date() &&
     task.status !== 'done';
+
+  async function handleSaveTitle() {
+    if (editTitle.trim() === '') return setIsEditing(false);
+    await supabase.from('tasks').update({ title: editTitle }).eq('id', task.id);
+    setIsEditing(false);
+  }
+
   return (
     <div
       style={{
@@ -42,7 +51,8 @@ export default function TaskCard({ task, onDelete }) {
         transition: 'transform 0.15s',
       }}
     >
-      {/* En-tête : titre + bouton supprimer */}
+      <style>{`@keyframes blink { 0% {opacity:1;} 50% {opacity:0.3;} 100% {opacity:1;} }`}</style>
+
       <div
         style={{
           display: 'flex',
@@ -51,9 +61,36 @@ export default function TaskCard({ task, onDelete }) {
           gap: '0.5rem',
         }}
       >
-        <h3 style={{ margin: 0, fontSize: '1rem', color: '#1E293B' }}>
-          {task.title}
-        </h3>
+        {isEditing ? (
+          <input
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={handleSaveTitle}
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
+            autoFocus
+            style={{
+              fontSize: '1rem',
+              padding: '0.2rem',
+              width: '100%',
+              borderRadius: '4px',
+              border: '1px solid #1A8C82',
+            }}
+          />
+        ) : (
+          <h3
+            onClick={() => setIsEditing(true)}
+            style={{
+              margin: 0,
+              fontSize: '1rem',
+              color: '#1E293B',
+              cursor: 'pointer',
+              borderBottom: '1px dashed #CBD5E1',
+            }}
+            title="Cliquez pour modifier"
+          >
+            {task.title}
+          </h3>
+        )}
         <button
           onClick={() => onDelete(task.id)}
           style={{
@@ -68,7 +105,7 @@ export default function TaskCard({ task, onDelete }) {
           ✕
         </button>
       </div>
-      {/* Description */}
+
       {task.description && (
         <p
           style={{
@@ -81,7 +118,7 @@ export default function TaskCard({ task, onDelete }) {
           {task.description}
         </p>
       )}
-      {/* Badges */}
+
       <div
         style={{
           display: 'flex',
@@ -91,7 +128,6 @@ export default function TaskCard({ task, onDelete }) {
           alignItems: 'center',
         }}
       >
-        {/* Statut */}
         <span
           style={{
             fontSize: '0.75rem',
@@ -104,7 +140,6 @@ export default function TaskCard({ task, onDelete }) {
         >
           {status.label}
         </span>
-        {/* Priorité */}
         <span
           style={{
             fontSize: '0.75rem',
@@ -117,7 +152,6 @@ export default function TaskCard({ task, onDelete }) {
         >
           {priority.label}
         </span>
-        {/* Catégorie */}
         {task.categories && (
           <span
             style={{
@@ -132,19 +166,19 @@ export default function TaskCard({ task, onDelete }) {
             🏷 {task.categories.name}
           </span>
         )}
-        {/* Date d'échéance */}
         {dueLabel && (
           <span
             style={{
               fontSize: '0.75rem',
               padding: '0.2rem 0.5rem',
               borderRadius: '999px',
-              background: isOverdue ? '#FEE2E2' : '#F1F5F9',
-              color: isOverdue ? '#DC2626' : '#64748B',
+              background: isOverdue ? '#DC2626' : '#F1F5F9',
+              color: isOverdue ? 'white' : '#64748B',
               fontWeight: 600,
+              animation: isOverdue ? 'blink 1.5s infinite' : 'none',
             }}
           >
-            📅 {isOverdue ? '⚠ ' : ''}
+            📅 {isOverdue ? '⚠ En retard : ' : ''}
             {dueLabel}
           </span>
         )}

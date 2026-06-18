@@ -1,13 +1,12 @@
-// src/components/Navbar.jsx
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function Navbar({ session }) {
   const location = useLocation();
+  const avatarUrl = session?.user?.user_metadata?.avatar_url;
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    // App.jsx détecte session=null → redirige /login automatiquement
   }
 
   function linkStyle(path) {
@@ -34,27 +33,46 @@ export default function Navbar({ session }) {
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      {/* ── Logo / titre ── */}
       <span style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem' }}>
         KanbanRT
       </span>
 
-      {/* ── Liens de navigation ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <Link to="/dashboard" style={linkStyle('/dashboard')}>
           Tableau de bord
         </Link>
-
         <Link to="/profile" style={linkStyle('/profile')}>
           Mon profil
         </Link>
       </div>
 
-      {/* ── Email + bouton déconnexion ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: 'rgba(255,255,255,0.8)',
+            fontSize: '0.85rem',
+          }}
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1px solid rgba(255,255,255,0.4)',
+              }}
+            />
+          ) : (
+            <span style={{ fontSize: '1.2rem' }}>👤</span>
+          )}
           {session?.user?.email}
-        </span>
+        </div>
 
         <button
           onClick={handleLogout}
