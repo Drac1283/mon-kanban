@@ -1,4 +1,5 @@
 # Project R209 mon-Kanban
+# KanbanRT - Application de gestion de tâches pour équipes Réseaux & Télécoms
 
 A brief description of what this project does and who it's for
 
