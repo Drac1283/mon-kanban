@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import UserTable from '../components/UserTable';
 import TaskList from '../components/TaskList';
 import Navbar from '../components/Navbar';
+import TeamPresence from '../components/TeamPresence';
 
 export default function DashboardPage({ session }) {
   const [users, setUsers] = useState([]);
@@ -25,7 +26,7 @@ export default function DashboardPage({ session }) {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/ehaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchUsers();
     supabase
       .from('boards')
@@ -41,6 +42,10 @@ export default function DashboardPage({ session }) {
       <Navbar session={session} />
 
       <main style={{ padding: '2rem' }}>
+        
+        {/* Module de présence pour l'équipe (Timing / Pause) */}
+        <TeamPresence currentUserId={session?.user?.id} />
+
         {/* Navigation par onglets */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {[
