@@ -22,10 +22,7 @@ export default async function handler(req, res) {
       
       <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; font-size: 13px; color: #64748b;">
-          Cet e-mail a été envoyé automatiquement par votre application <strong>KanbanRT</strong>.
-        </p>
-        <p style="margin: 8px 0 0 0; font-size: 12px; color: #94a3b8;">
-          © ${new Date().getFullYear()} KanbanRT - Projet R2.09
+          Cet e-mail a été envoyé automatiquement par votre application KanbanRT.
         </p>
       </div>
       
