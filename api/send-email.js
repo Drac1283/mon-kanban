@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // Accepter uniquement les requêtes POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -9,6 +10,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Champs manquants' });
   }
 
+  // 🎨 LE TEMPLATE HTML RICHE EST ICI
   const richHtmlTemplate = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
       
@@ -22,10 +24,7 @@ export default async function handler(req, res) {
       
       <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; font-size: 13px; color: #64748b;">
-          Cet e-mail a été envoyé automatiquement par votre application <strong>KanbanRT</strong>.
-        </p>
-        <p style="margin: 8px 0 0 0; font-size: 12px; color: #94a3b8;">
-          © ${new Date().getFullYear()} KanbanRT - Projet R2.09
+          Cet e-mail a été envoyé automatiquement par votre application KanbanRT.
         </p>
       </div>
       
@@ -41,9 +40,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: 'KanbanRT <onboarding@resend.dev>',
-        to: ['gabrielcb.1283@gmail.com'],
+        to: ['gabrielcb.1283@gmail.com'], // Toujours votre adresse pour le mode gratuit
         subject,
-        html: richHtmlTemplate,
+        html: richHtmlTemplate, // 👈 On injecte le beau design ici
       }),
     });
 
